@@ -61,6 +61,7 @@ jobs:
 
       - name: Instalar dependencias del proyecto
         run: |
+          pip install "numpy>=1.24.0,<2.0.0"
           pip install Pillow scikit-learn pandas scipy matplotlib tqdm \
                       transformers gradio opencv-python-headless
           pip install -r requirements-dev.txt
