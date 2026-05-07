@@ -2,6 +2,7 @@
 Funciones de evaluación reutilizables.
 Importadas por train.py y evaluate.py para no duplicar código.
 """
+
 import json
 import os
 
@@ -39,28 +40,34 @@ def compute_metrics(y_true, y_pred, labels, names, task: str) -> dict:
     Devuelve un dict estructurado listo para JSON.
     """
     report = classification_report(
-        y_true, y_pred, labels=labels, target_names=names,
-        output_dict=True, zero_division=0,
+        y_true,
+        y_pred,
+        labels=labels,
+        target_names=names,
+        output_dict=True,
+        zero_division=0,
     )
 
     per_class = {
         name: {
             "precision": round(report[name]["precision"], 4),
-            "recall":    round(report[name]["recall"],    4),
-            "f1":        round(report[name]["f1-score"],  4),
-            "support":   int(report[name]["support"]),
+            "recall": round(report[name]["recall"], 4),
+            "f1": round(report[name]["f1-score"], 4),
+            "support": int(report[name]["support"]),
         }
         for name in names
     }
 
     return {
-        "task":           task,
-        "accuracy":       round(accuracy_score(y_true, y_pred), 4),
-        "f1_weighted":    round(f1_score(y_true, y_pred, average="weighted",
-                                         labels=labels, zero_division=0), 4),
-        "f1_macro":       round(f1_score(y_true, y_pred, average="macro",
-                                         labels=labels, zero_division=0), 4),
-        "per_class":      per_class,
+        "task": task,
+        "accuracy": round(accuracy_score(y_true, y_pred), 4),
+        "f1_weighted": round(
+            f1_score(y_true, y_pred, average="weighted", labels=labels, zero_division=0), 4
+        ),
+        "f1_macro": round(
+            f1_score(y_true, y_pred, average="macro", labels=labels, zero_division=0), 4
+        ),
+        "per_class": per_class,
     }
 
 
@@ -72,14 +79,14 @@ def print_report(metrics_d: dict, metrics_o: dict) -> None:
 
 def _print_task_summary(m: dict) -> None:
     task = m["task"]
-    print(f"\n{'─'*55}")
+    print(f"\n{'─' * 55}")
     print(f"  Tarea: {task}")
-    print(f"{'─'*55}")
+    print(f"{'─' * 55}")
     print(f"  Accuracy    : {m['accuracy']:.2%}")
     print(f"  F1 weighted : {m['f1_weighted']:.4f}")
     print(f"  F1 macro    : {m['f1_macro']:.4f}")
     print(f"\n  {'Clase':<8} {'Prec':>6} {'Recall':>7} {'F1':>6} {'Soporte':>8}")
-    print(f"  {'─'*38}")
+    print(f"  {'─' * 38}")
     for name, vals in m["per_class"].items():
         print(
             f"  {name:<8} {vals['precision']:>6.2f} "
@@ -96,8 +103,12 @@ def save_metrics_json(metrics_d: dict, metrics_o: dict, output_dir: str) -> None
 
 
 def save_confusion_matrix(
-    y_true, y_pred, labels, names,
-    title: str, path: str,
+    y_true,
+    y_pred,
+    labels,
+    names,
+    title: str,
+    path: str,
     cmap_abs: str = "Blues",
     cmap_norm: str = "Oranges",
 ) -> None:
@@ -113,15 +124,15 @@ def save_confusion_matrix(
     cm = confusion_matrix(y_true, y_pred, labels=labels)
     # Normalización por fila: cada fila suma 1 (divide por total de esa clase real)
     with np.errstate(divide="ignore", invalid="ignore"):
-        cm_norm = np.where(cm.sum(axis=1, keepdims=True) == 0, 0,
-                           cm / cm.sum(axis=1, keepdims=True))
+        cm_norm = np.where(
+            cm.sum(axis=1, keepdims=True) == 0, 0, cm / cm.sum(axis=1, keepdims=True)
+        )
 
     fig, axes = plt.subplots(1, 2, figsize=(14, 5))
     fig.suptitle(title, fontsize=13, fontweight="bold")
 
-    _plot_cm(axes[0], cm,      names, cmap_abs,  "Conteos absolutos")
-    _plot_cm(axes[1], cm_norm, names, cmap_norm, "Normalizada por fila (recall %)",
-             fmt=".0%")
+    _plot_cm(axes[0], cm, names, cmap_abs, "Conteos absolutos")
+    _plot_cm(axes[1], cm_norm, names, cmap_norm, "Normalizada por fila (recall %)", fmt=".0%")
 
     fig.tight_layout()
     fig.savefig(path, dpi=150, bbox_inches="tight")
@@ -131,8 +142,9 @@ def save_confusion_matrix(
 
 def _plot_cm(ax, cm, names, cmap, subtitle, fmt="d"):
     n = len(names)
-    im = ax.imshow(cm, interpolation="nearest", cmap=cmap,
-                   vmin=0, vmax=(1.0 if fmt == ".0%" else cm.max()))
+    im = ax.imshow(
+        cm, interpolation="nearest", cmap=cmap, vmin=0, vmax=(1.0 if fmt == ".0%" else cm.max())
+    )
 
     ax.set_title(subtitle, fontsize=10)
     ax.set_xlabel("Predicho")
@@ -149,8 +161,15 @@ def _plot_cm(ax, cm, names, cmap, subtitle, fmt="d"):
         for j in range(n):
             val = cm[i, j]
             text = format(val, fmt) if fmt != "d" else str(val)
-            ax.text(j, i, text, ha="center", va="center", fontsize=7,
-                    color="white" if val > thresh else "black")
+            ax.text(
+                j,
+                i,
+                text,
+                ha="center",
+                va="center",
+                fontsize=7,
+                color="white" if val > thresh else "black",
+            )
 
     plt.colorbar(im, ax=ax, fraction=0.046, pad=0.04)
 
@@ -167,24 +186,29 @@ def run_full_evaluation(model, loader, dataset, device, output_dir: str) -> dict
     names_d = [dataset.label_name_d(i) for i in all_idx_d]
     names_o = [dataset.label_name_o(i) for i in all_idx_o]
 
-    metrics_d = compute_metrics(y_true_d, y_pred_d, all_idx_d, names_d,
-                                task="dX — ductos totales")
-    metrics_o = compute_metrics(y_true_o, y_pred_o, all_idx_o, names_o,
-                                task="oX — ductos ocupados")
+    metrics_d = compute_metrics(y_true_d, y_pred_d, all_idx_d, names_d, task="dX — ductos totales")
+    metrics_o = compute_metrics(y_true_o, y_pred_o, all_idx_o, names_o, task="oX — ductos ocupados")
 
     print_report(metrics_d, metrics_o)
     save_metrics_json(metrics_d, metrics_o, output_dir)
 
     save_confusion_matrix(
-        y_true_d, y_pred_d, all_idx_d, names_d,
+        y_true_d,
+        y_pred_d,
+        all_idx_d,
+        names_d,
         title="Confusión — dX (ductos totales)",
         path=os.path.join(output_dir, "confusion_dx.png"),
     )
     save_confusion_matrix(
-        y_true_o, y_pred_o, all_idx_o, names_o,
+        y_true_o,
+        y_pred_o,
+        all_idx_o,
+        names_o,
         title="Confusión — oX (ductos ocupados)",
         path=os.path.join(output_dir, "confusion_ox.png"),
-        cmap_abs="Greens", cmap_norm="YlOrRd",
+        cmap_abs="Greens",
+        cmap_norm="YlOrRd",
     )
 
     return {"dx": metrics_d, "ox": metrics_o}

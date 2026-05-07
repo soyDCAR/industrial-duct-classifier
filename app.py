@@ -10,6 +10,7 @@ Hugging Face Spaces:
     Sube este archivo como app.py junto con model.py.
     El .pth y class_mapping.json deben estar en la raíz del Space.
 """
+
 import argparse
 import json
 import os
@@ -27,18 +28,17 @@ from model import MultiEfficientNet, get_transforms
 matplotlib.use("Agg")  # backend sin pantalla (necesario en servidores/Docker)
 
 # ── Configuración por defecto ────────────────────────────────────────
-DEFAULT_MODEL   = "modelo_ductos_multitarea_efnet.pth"
+DEFAULT_MODEL = "modelo_ductos_multitarea_efnet.pth"
 DEFAULT_MAPPING = "class_mapping.json"
-MAX_CLASS       = 7
+MAX_CLASS = 7
 
 
 def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(description="Demo Gradio — Clasificador de Ductos")
-    p.add_argument("--model",   default=DEFAULT_MODEL)
+    p.add_argument("--model", default=DEFAULT_MODEL)
     p.add_argument("--mapping", default=DEFAULT_MAPPING)
-    p.add_argument("--port",    type=int, default=7860)
-    p.add_argument("--share",   action="store_true",
-                   help="Genera link público temporal de Gradio")
+    p.add_argument("--port", type=int, default=7860)
+    p.add_argument("--share", action="store_true", help="Genera link público temporal de Gradio")
     return p.parse_args()
 
 
@@ -58,7 +58,7 @@ def load_resources(model_path: str, mapping_path: str):
     idx_to_class_o = {int(k): v for k, v in data["idx_to_class_o"].items()}
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    model  = MultiEfficientNet(len(idx_to_class_d), len(idx_to_class_o))
+    model = MultiEfficientNet(len(idx_to_class_d), len(idx_to_class_o))
     model.load_state_dict(torch.load(model_path, map_location=device))
     model.to(device).eval()
 
@@ -69,8 +69,7 @@ def class_label(val: int, prefix: str) -> str:
     return f"{prefix}{val}" if val < MAX_CLASS else f"{prefix}7+"
 
 
-def predict(image: Image.Image, model, idx_to_class_d, idx_to_class_o, device,
-            transform) -> tuple:
+def predict(image: Image.Image, model, idx_to_class_d, idx_to_class_o, device, transform) -> tuple:
     """Devuelve texto de resultado + figura de probabilidades."""
     if image is None:
         return "Sube una imagen para comenzar.", None
@@ -81,8 +80,8 @@ def predict(image: Image.Image, model, idx_to_class_d, idx_to_class_o, device,
         out_d, out_o = model(tensor)
         probs_d = torch.softmax(out_d, dim=1).cpu().numpy()[0]
         probs_o = torch.softmax(out_o, dim=1).cpu().numpy()[0]
-        pred_d  = int(torch.argmax(out_d, dim=1).item())
-        pred_o  = int(torch.argmax(out_o, dim=1).item())
+        pred_d = int(torch.argmax(out_d, dim=1).item())
+        pred_o = int(torch.argmax(out_o, dim=1).item())
 
     d_val = idx_to_class_d[pred_d]
     o_val = idx_to_class_o[pred_o]
@@ -125,8 +124,13 @@ def _bar_panel(ax, probs, labels, title, color):
 
     # Etiqueta de porcentaje al final de cada barra
     for bar, prob in zip(bars, probs):
-        ax.text(min(prob + 0.02, 0.95), bar.get_y() + bar.get_height() / 2,
-                f"{prob:.0%}", va="center", fontsize=8)
+        ax.text(
+            min(prob + 0.02, 0.95),
+            bar.get_y() + bar.get_height() / 2,
+            f"{prob:.0%}",
+            va="center",
+            fontsize=8,
+        )
 
 
 def build_interface(model, idx_to_class_d, idx_to_class_o, device) -> gr.Blocks:
@@ -136,7 +140,6 @@ def build_interface(model, idx_to_class_d, idx_to_class_o, device) -> gr.Blocks:
         return predict(image, model, idx_to_class_d, idx_to_class_o, device, transform)
 
     with gr.Blocks(title="Clasificador de Ductos", theme=gr.themes.Soft()) as demo:
-
         gr.Markdown(
             """
             # Clasificador de Ductos
@@ -150,11 +153,11 @@ def build_interface(model, idx_to_class_d, idx_to_class_o, device) -> gr.Blocks:
         with gr.Row():
             with gr.Column(scale=1):
                 img_input = gr.Image(type="pil", label="Imagen de entrada")
-                btn       = gr.Button("Clasificar", variant="primary")
+                btn = gr.Button("Clasificar", variant="primary")
 
             with gr.Column(scale=1):
                 texto_out = gr.Markdown(label="Resultado")
-                plot_out  = gr.Plot(label="Probabilidades por clase")
+                plot_out = gr.Plot(label="Probabilidades por clase")
 
         btn.click(
             fn=_predict_wrapper,
@@ -190,9 +193,9 @@ def build_interface(model, idx_to_class_d, idx_to_class_o, device) -> gr.Blocks:
 
 
 def main():
-    args   = parse_args()
+    args = parse_args()
     model, idx_to_class_d, idx_to_class_o, device = load_resources(args.model, args.mapping)
-    demo   = build_interface(model, idx_to_class_d, idx_to_class_o, device)
+    demo = build_interface(model, idx_to_class_d, idx_to_class_o, device)
     demo.launch(server_port=args.port, share=args.share)
 
 

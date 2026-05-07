@@ -6,6 +6,7 @@ Uso:
     python evaluate.py --model modelo_ductos_multitarea_efnet.pth --data-dir img/
     python evaluate.py --model runs/exp1/modelo.pth --data-dir img/ --output-dir runs/exp1
 """
+
 import argparse
 import os
 import sys
@@ -19,14 +20,16 @@ from model import DuctoDataset, MultiEfficientNet, get_transforms
 
 def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(description="Evaluación del clasificador de ductos")
-    p.add_argument("--model",      required=True,
-                                   help="Ruta al archivo .pth")
-    p.add_argument("--data-dir",   default="img",
-                                   help="Carpeta con las imágenes de evaluación")
-    p.add_argument("--mapping",    default=None,
-                                   help="Ruta a class_mapping.json (opcional, se infiere del dataset)")
-    p.add_argument("--output-dir", default="eval_output",
-                                   help="Dónde guardar métricas y matrices de confusión")
+    p.add_argument("--model", required=True, help="Ruta al archivo .pth")
+    p.add_argument("--data-dir", default="img", help="Carpeta con las imágenes de evaluación")
+    p.add_argument(
+        "--mapping",
+        default=None,
+        help="Ruta a class_mapping.json (opcional, se infiere del dataset)",
+    )
+    p.add_argument(
+        "--output-dir", default="eval_output", help="Dónde guardar métricas y matrices de confusión"
+    )
     p.add_argument("--batch-size", type=int, default=32)
     return p.parse_args()
 
@@ -64,15 +67,19 @@ def main():
     # Correr evaluación completa
     results = run_full_evaluation(model, loader, dataset, device, args.output_dir)
 
-    print(f"\n{'═'*55}")
+    print(f"\n{'═' * 55}")
     print("  Resumen final")
-    print(f"{'═'*55}")
-    print(f"  dX  accuracy={results['dx']['accuracy']:.2%}  "
-          f"F1w={results['dx']['f1_weighted']:.4f}  "
-          f"F1macro={results['dx']['f1_macro']:.4f}")
-    print(f"  oX  accuracy={results['ox']['accuracy']:.2%}  "
-          f"F1w={results['ox']['f1_weighted']:.4f}  "
-          f"F1macro={results['ox']['f1_macro']:.4f}")
+    print(f"{'═' * 55}")
+    print(
+        f"  dX  accuracy={results['dx']['accuracy']:.2%}  "
+        f"F1w={results['dx']['f1_weighted']:.4f}  "
+        f"F1macro={results['dx']['f1_macro']:.4f}"
+    )
+    print(
+        f"  oX  accuracy={results['ox']['accuracy']:.2%}  "
+        f"F1w={results['ox']['f1_weighted']:.4f}  "
+        f"F1macro={results['ox']['f1_macro']:.4f}"
+    )
     print(f"\n  Archivos generados en: {args.output_dir}/")
     print("    metrics.json")
     print("    confusion_dx.png")

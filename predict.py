@@ -9,6 +9,7 @@ Uso — carpeta completa:
     python predict.py img/ --batch
     python predict.py img/ --batch --output resultados.csv
 """
+
 import argparse
 import csv
 import json
@@ -23,15 +24,19 @@ from model import MultiEfficientNet, get_transforms
 
 def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(description="Predicción clasificador de ductos")
-    p.add_argument("input",         help="Imagen (.jpg/.png) o carpeta con --batch")
-    p.add_argument("--model",       default="modelo_ductos_multitarea_efnet.pth",
-                                    help="Ruta al archivo .pth")
-    p.add_argument("--mapping",     default="class_mapping.json",
-                                    help="Ruta al class_mapping.json generado por train.py")
-    p.add_argument("--batch",       action="store_true",
-                                    help="Procesar todos los archivos de una carpeta")
-    p.add_argument("--output",      default=None,
-                                    help="Guardar resultados en CSV (solo con --batch)")
+    p.add_argument("input", help="Imagen (.jpg/.png) o carpeta con --batch")
+    p.add_argument(
+        "--model", default="modelo_ductos_multitarea_efnet.pth", help="Ruta al archivo .pth"
+    )
+    p.add_argument(
+        "--mapping",
+        default="class_mapping.json",
+        help="Ruta al class_mapping.json generado por train.py",
+    )
+    p.add_argument(
+        "--batch", action="store_true", help="Procesar todos los archivos de una carpeta"
+    )
+    p.add_argument("--output", default=None, help="Guardar resultados en CSV (solo con --batch)")
     return p.parse_args()
 
 
@@ -39,8 +44,7 @@ def load_mapping(path: str) -> tuple[dict, dict]:
     """Carga idx_to_class_d e idx_to_class_o desde class_mapping.json."""
     if not os.path.exists(path):
         sys.exit(
-            f"ERROR: No se encontró '{path}'.\n"
-            "Ejecuta primero: python train.py --data-dir img/"
+            f"ERROR: No se encontró '{path}'.\nEjecuta primero: python train.py --data-dir img/"
         )
     with open(path) as f:
         data = json.load(f)
@@ -50,9 +54,14 @@ def load_mapping(path: str) -> tuple[dict, dict]:
     return idx_to_class_d, idx_to_class_o
 
 
-def predict_image(image_path: str, model: MultiEfficientNet,
-                  idx_to_class_d: dict, idx_to_class_o: dict,
-                  transform, device: torch.device) -> dict:
+def predict_image(
+    image_path: str,
+    model: MultiEfficientNet,
+    idx_to_class_d: dict,
+    idx_to_class_o: dict,
+    transform,
+    device: torch.device,
+) -> dict:
     img = Image.open(image_path).convert("RGB")
     tensor = transform(img).unsqueeze(0).to(device)
 
@@ -67,10 +76,10 @@ def predict_image(image_path: str, model: MultiEfficientNet,
 
     MAX = 7
     return {
-        "archivo":  os.path.basename(image_path),
-        "d_total":  f"{d_val}" if d_val < MAX else "7+",
-        "o_ocup":   f"{o_val}" if o_val < MAX else "7+",
-        "v_vacio":  str(v_val),
+        "archivo": os.path.basename(image_path),
+        "d_total": f"{d_val}" if d_val < MAX else "7+",
+        "o_ocup": f"{o_val}" if o_val < MAX else "7+",
+        "v_vacio": str(v_val),
     }
 
 
@@ -92,7 +101,7 @@ def main():
         )
 
     idx_to_class_d, idx_to_class_o = load_mapping(args.mapping)
-    device    = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     transform = get_transforms(train=False)
 
     model = MultiEfficientNet(
@@ -108,14 +117,14 @@ def main():
         if not os.path.isdir(args.input):
             sys.exit(f"ERROR: '{args.input}' no es una carpeta. Quita --batch para una imagen.")
 
-        extensions = ('.jpg', '.jpeg', '.png', '.bmp')
+        extensions = (".jpg", ".jpeg", ".png", ".bmp")
         files = [f for f in os.listdir(args.input) if f.lower().endswith(extensions)]
         if not files:
             sys.exit(f"No se encontraron imágenes en '{args.input}'.")
 
         results = []
         for fname in sorted(files):
-            path   = os.path.join(args.input, fname)
+            path = os.path.join(args.input, fname)
             result = predict_image(path, model, idx_to_class_d, idx_to_class_o, transform, device)
             print_result(result)
             results.append(result)

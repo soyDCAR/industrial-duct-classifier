@@ -9,25 +9,29 @@ from torch.utils.data import Dataset
 from torchvision.models import EfficientNet_B0_Weights, efficientnet_b0
 
 IMAGENET_MEAN = [0.485, 0.456, 0.406]
-IMAGENET_STD  = [0.229, 0.224, 0.225]
+IMAGENET_STD = [0.229, 0.224, 0.225]
 
 
 def get_transforms(train: bool) -> transforms.Compose:
     if train:
-        return transforms.Compose([
-            transforms.RandomResizedCrop(224, scale=(0.8, 1.0)),
-            transforms.RandomHorizontalFlip(),
-            transforms.RandomRotation(10),
-            transforms.ColorJitter(brightness=0.3, contrast=0.3),
-            transforms.RandomAffine(degrees=15, translate=(0.05, 0.05)),
+        return transforms.Compose(
+            [
+                transforms.RandomResizedCrop(224, scale=(0.8, 1.0)),
+                transforms.RandomHorizontalFlip(),
+                transforms.RandomRotation(10),
+                transforms.ColorJitter(brightness=0.3, contrast=0.3),
+                transforms.RandomAffine(degrees=15, translate=(0.05, 0.05)),
+                transforms.ToTensor(),
+                transforms.Normalize(IMAGENET_MEAN, IMAGENET_STD),
+            ]
+        )
+    return transforms.Compose(
+        [
+            transforms.Resize((224, 224)),
             transforms.ToTensor(),
             transforms.Normalize(IMAGENET_MEAN, IMAGENET_STD),
-        ])
-    return transforms.Compose([
-        transforms.Resize((224, 224)),
-        transforms.ToTensor(),
-        transforms.Normalize(IMAGENET_MEAN, IMAGENET_STD),
-    ])
+        ]
+    )
 
 
 class FocalLoss(nn.Module):
@@ -55,7 +59,7 @@ class DuctoDataset(Dataset):
         self.labels_o: list[int] = []
 
         for fname in os.listdir(img_dir):
-            if not fname.lower().endswith(('.jpg', '.jpeg', '.png')):
+            if not fname.lower().endswith((".jpg", ".jpeg", ".png")):
                 continue
             match_d = re.search(r"_d(\d+)_", fname)
             match_o = re.search(r"_o(\d+)_", fname)
@@ -112,8 +116,9 @@ class MultiEfficientNet(nn.Module):
         return self.classifier_d(x), self.classifier_o(x)
 
 
-def load_model(checkpoint: str, num_classes_d: int, num_classes_o: int,
-               device: torch.device) -> MultiEfficientNet:
+def load_model(
+    checkpoint: str, num_classes_d: int, num_classes_o: int, device: torch.device
+) -> MultiEfficientNet:
     model = MultiEfficientNet(num_classes_d, num_classes_o)
     model.load_state_dict(torch.load(checkpoint, map_location=device))
     model.to(device)

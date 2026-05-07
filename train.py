@@ -6,6 +6,7 @@ Uso:
     python train.py --data-dir img/ --epochs 20 --batch-size 16 --lr 0.0005
     python train.py --data-dir img/ --output-dir runs/exp1
 """
+
 import argparse
 import json
 import os
@@ -29,13 +30,13 @@ def set_seed(seed: int) -> None:
 
 def parse_args() -> argparse.Namespace:
     p = argparse.ArgumentParser(description="Entrenamiento clasificador de ductos")
-    p.add_argument("--data-dir",    default="img",   help="Carpeta con las imágenes")
-    p.add_argument("--output-dir",  default="runs",  help="Dónde guardar modelo y métricas")
-    p.add_argument("--epochs",      type=int,   default=10)
-    p.add_argument("--batch-size",  type=int,   default=32)
-    p.add_argument("--lr",          type=float, default=1e-3)
-    p.add_argument("--val-split",   type=float, default=0.2)
-    p.add_argument("--seed",        type=int,   default=42)
+    p.add_argument("--data-dir", default="img", help="Carpeta con las imágenes")
+    p.add_argument("--output-dir", default="runs", help="Dónde guardar modelo y métricas")
+    p.add_argument("--epochs", type=int, default=10)
+    p.add_argument("--batch-size", type=int, default=32)
+    p.add_argument("--lr", type=float, default=1e-3)
+    p.add_argument("--val-split", type=float, default=0.2)
+    p.add_argument("--seed", type=int, default=42)
     return p.parse_args()
 
 
@@ -67,7 +68,7 @@ def val_epoch(model, loader, criterion_d, criterion_o, device) -> float:
 def save_loss_curve(train_losses: list, val_losses: list, path: str) -> None:
     fig, ax = plt.subplots()
     ax.plot(train_losses, label="Entrenamiento")
-    ax.plot(val_losses,   label="Validación")
+    ax.plot(val_losses, label="Validación")
     ax.set_title("Pérdida por época")
     ax.set_xlabel("Época")
     ax.set_ylabel("Loss")
@@ -104,17 +105,18 @@ def main():
     print(f"Clase mapping: {mapping_path}")
 
     # Split train / val con seed fijo para reproducibilidad
-    val_size   = int(args.val_split * len(dataset))
+    val_size = int(args.val_split * len(dataset))
     train_size = len(dataset) - val_size
     train_ds, val_ds = random_split(
-        dataset, [train_size, val_size],
+        dataset,
+        [train_size, val_size],
         generator=torch.Generator().manual_seed(args.seed),
     )
     train_ds.dataset.transform = get_transforms(train=True)
-    val_ds.dataset.transform   = get_transforms(train=False)
+    val_ds.dataset.transform = get_transforms(train=False)
 
-    train_loader = DataLoader(train_ds, batch_size=args.batch_size, shuffle=True,  num_workers=0)
-    val_loader   = DataLoader(val_ds,   batch_size=args.batch_size, shuffle=False, num_workers=0)
+    train_loader = DataLoader(train_ds, batch_size=args.batch_size, shuffle=True, num_workers=0)
+    val_loader = DataLoader(val_ds, batch_size=args.batch_size, shuffle=False, num_workers=0)
 
     # Modelo + criterios + optimizador
     model = MultiEfficientNet(
@@ -123,7 +125,7 @@ def main():
     ).to(device)
     criterion_d = FocalLoss()
     criterion_o = FocalLoss()
-    optimizer   = optim.Adam(model.parameters(), lr=args.lr)
+    optimizer = optim.Adam(model.parameters(), lr=args.lr)
 
     # Entrenamiento
     train_losses, val_losses = [], []
@@ -139,8 +141,7 @@ def main():
     torch.save(model.state_dict(), model_path)
     print(f"\nModelo guardado : {model_path}")
 
-    save_loss_curve(train_losses, val_losses,
-                    os.path.join(args.output_dir, "loss_curve.png"))
+    save_loss_curve(train_losses, val_losses, os.path.join(args.output_dir, "loss_curve.png"))
 
     # Evaluación completa — importada de metrics.py, sin código duplicado
     print("\nEvaluando en conjunto de validación...")

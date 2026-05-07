@@ -27,6 +27,7 @@ class MultiEfficientNet(torch.nn.Module):
         out_o = self.classifier_o(x)
         return out_d, out_o
 
+
 # -------------------- Cargar modelo y clases --------------------
 device = torch.device("cpu")  # Forzar CPU
 
@@ -44,12 +45,14 @@ model.to(device)
 model.eval()
 
 # Transformación de entrada
-transform_val = transforms.Compose([
-    transforms.Resize((224, 224)),
-    transforms.ToTensor(),
-    transforms.Normalize([0.485, 0.456, 0.406],
-                         [0.229, 0.224, 0.225])
-])
+transform_val = transforms.Compose(
+    [
+        transforms.Resize((224, 224)),
+        transforms.ToTensor(),
+        transforms.Normalize([0.485, 0.456, 0.406], [0.229, 0.224, 0.225]),
+    ]
+)
+
 
 # -------------------- Interfaz Tkinter --------------------
 class App:
@@ -60,7 +63,9 @@ class App:
         self.frame.pack(padx=10, pady=10, fill="both", expand=True)
 
         # Botón de carga
-        self.btn_cargar = tk.Button(self.frame, text="📂 Cargar Imágenes", command=self.cargar_imagenes, font=("Arial", 12))
+        self.btn_cargar = tk.Button(
+            self.frame, text="📂 Cargar Imágenes", command=self.cargar_imagenes, font=("Arial", 12)
+        )
         self.btn_cargar.pack(pady=10)
 
         # Canvas con scrollbar
@@ -73,7 +78,9 @@ class App:
         self.img_frame = tk.Frame(self.canvas)
         self.canvas.create_window((0, 0), window=self.img_frame, anchor="nw")
 
-        self.img_frame.bind("<Configure>", lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all")))
+        self.img_frame.bind(
+            "<Configure>", lambda e: self.canvas.configure(scrollregion=self.canvas.bbox("all"))
+        )
 
     def cargar_imagenes(self):
         rutas = filedialog.askopenfilenames(filetypes=[("Imágenes", "*.jpg *.jpeg *.png")])
@@ -117,12 +124,13 @@ class App:
         lbl_result = tk.Label(
             self.img_frame,
             text=f"{os.path.basename(ruta_img)}\n"
-                 f"🔢 Ductos totales (dX): {d_real if d_real < 7 else '7+'}\n"
-                 f"✅ Ductos ocupados (oX): {o_real if o_real < 7 else '7+'}\n"
-                 f"⬜ Ductos vacíos     : {v_real}",
-            font=("Arial", 10)
+            f"🔢 Ductos totales (dX): {d_real if d_real < 7 else '7+'}\n"
+            f"✅ Ductos ocupados (oX): {o_real if o_real < 7 else '7+'}\n"
+            f"⬜ Ductos vacíos     : {v_real}",
+            font=("Arial", 10),
         )
         lbl_result.pack(pady=(0, 15))
+
 
 # -------------------- Ejecutar Interfaz --------------------
 if __name__ == "__main__":

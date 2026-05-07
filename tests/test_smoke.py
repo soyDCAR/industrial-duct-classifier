@@ -4,6 +4,7 @@ Smoke tests — verifican que el código funciona sin dataset ni modelo guardado
 No testean que el modelo prediga correctamente (eso requiere datos reales).
 Testean que la arquitectura, las transformaciones y los CLIs no están rotos.
 """
+
 import subprocess
 import sys
 
@@ -14,6 +15,7 @@ from PIL import Image
 from model import DuctoDataset, FocalLoss, MultiEfficientNet, get_transforms
 
 # ── Arquitectura ─────────────────────────────────────────────────────
+
 
 def test_model_instantiation():
     """MultiEfficientNet se crea con cualquier número de clases."""
@@ -45,10 +47,11 @@ def test_forward_pass_single_image():
 
 # ── FocalLoss ────────────────────────────────────────────────────────
 
+
 def test_focal_loss_positive():
     """FocalLoss devuelve un valor positivo."""
     loss_fn = FocalLoss(gamma=2.0)
-    logits  = torch.randn(4, 8)
+    logits = torch.randn(4, 8)
     targets = torch.randint(0, 8, (4,))
     loss = loss_fn(logits, targets)
     assert loss.item() >= 0, "FocalLoss debe ser >= 0"
@@ -58,29 +61,33 @@ def test_focal_loss_perfect_prediction_near_zero():
     """Con predicciones perfectas el loss tiende a 0."""
     loss_fn = FocalLoss(gamma=2.0)
     # logits muy altos en la clase correcta
-    logits  = torch.zeros(3, 5)
+    logits = torch.zeros(3, 5)
     targets = torch.tensor([0, 1, 2])
     logits[0, 0] = 100.0
     logits[1, 1] = 100.0
     logits[2, 2] = 100.0
     loss = loss_fn(logits, targets)
-    assert loss.item() < 0.01, f"Loss con predicción perfecta debería ser ~0, obtenido {loss.item()}"
+    assert loss.item() < 0.01, (
+        f"Loss con predicción perfecta debería ser ~0, obtenido {loss.item()}"
+    )
 
 
 # ── Transformaciones ─────────────────────────────────────────────────
+
 
 def test_transforms_return_tensor():
     """Las transformaciones convierten PIL Image en tensor de la forma correcta."""
     img = Image.new("RGB", (300, 200), color=(128, 64, 32))
 
     for train_mode in (True, False):
-        t      = get_transforms(train=train_mode)
+        t = get_transforms(train=train_mode)
         tensor = t(img)
         assert isinstance(tensor, torch.Tensor), f"train={train_mode}: esperado Tensor"
-        assert tensor.shape == (3, 224, 224),    f"train={train_mode}: forma incorrecta {tensor.shape}"
+        assert tensor.shape == (3, 224, 224), f"train={train_mode}: forma incorrecta {tensor.shape}"
 
 
 # ── Dataset ──────────────────────────────────────────────────────────
+
 
 def test_dataset_empty_dir(tmp_path):
     """DuctoDataset sobre carpeta vacía devuelve longitud 0 sin crashear."""
@@ -112,6 +119,7 @@ def test_dataset_with_synthetic_image(tmp_path):
 
 # ── CLIs (argparse) ──────────────────────────────────────────────────
 
+
 @pytest.mark.parametrize("script", ["train.py", "predict.py", "evaluate.py", "app.py"])
 def test_cli_help(script):
     """Todos los scripts responden a --help sin error."""
@@ -121,7 +129,6 @@ def test_cli_help(script):
         text=True,
     )
     assert result.returncode == 0, (
-        f"{script} --help retornó código {result.returncode}\n"
-        f"stderr: {result.stderr}"
+        f"{script} --help retornó código {result.returncode}\nstderr: {result.stderr}"
     )
     assert "usage" in result.stdout.lower(), f"{script} --help no muestra 'usage'"
