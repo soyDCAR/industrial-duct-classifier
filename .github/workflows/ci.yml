@@ -22,7 +22,7 @@ jobs:
           python-version: "3.10"
 
       - name: Instalar ruff
-        run: pip install ruff
+        run: pip install -r requirements-dev.txt
 
       - name: Verificar estilo de código
         run: ruff check .
