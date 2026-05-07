@@ -1,0 +1,22 @@
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+
+[tool.ruff.lint]
+select = [
+    "E",   # errores de estilo (pycodestyle)
+    "F",   # errores lógicos (pyflakes): imports no usados, variables no definidas
+    "I",   # orden de imports (isort)
+    "UP",  # sugerencias de Python moderno (pyupgrade)
+]
+ignore = [
+    "E501",  # línea demasiado larga — ya controlada por line-length
+]
+
+[tool.ruff.lint.per-file-ignores]
+# Los notebooks generados tienen imports en orden distinto — los ignoramos
+"*.ipynb" = ["E402", "F401", "I001"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts   = "-v --tb=short"

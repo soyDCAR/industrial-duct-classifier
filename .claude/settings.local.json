@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "PowerShell(New-Item -ItemType Directory -Force -Path \"C:\\\\Users\\\\Usuario\\\\Documents\\\\DILAN\\\\Proyectos\\\\ClasificacionDeDuctos-main\\\\tests\")"
+    ]
+  }
+}

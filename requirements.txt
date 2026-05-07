@@ -1,0 +1,30 @@
+# ── Core ML ──────────────────────────────────────────────────────────
+torch>=2.0.0
+torchvision>=0.15.0
+torchaudio>=2.0.0
+
+# numpy<2.0 requerido por compatibilidad con pycocotools y GroundingDINO
+numpy>=1.24.0,<2.0.0
+
+# ── Visión y procesamiento de imágenes ───────────────────────────────
+Pillow>=9.5.0
+opencv-python>=4.7.0
+
+# ── Datos y métricas ─────────────────────────────────────────────────
+scikit-learn>=1.3.0
+pandas>=2.0.0
+scipy>=1.11.0
+
+# ── Visualización ────────────────────────────────────────────────────
+matplotlib>=3.7.0
+
+# ── Utilidades ───────────────────────────────────────────────────────
+tqdm>=4.65.0
+transformers>=4.35.0
+
+# ── Interfaz web (Gradio demo) ───────────────────────────────────────
+gradio>=4.0.0
+
+# ── Anotaciones COCO (si usas pycocotools) ───────────────────────────
+# En Windows instala: pip install pycocotools-windows
+pycocotools>=2.0.7
