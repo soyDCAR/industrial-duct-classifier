@@ -14,6 +14,7 @@ from PIL import Image
 
 from model import DuctoDataset, FocalLoss, MultiEfficientNet, get_transforms
 
+
 # Algunos entornos CI tienen el bridge C torch-numpy roto (numpy instalado pero
 # _ARRAY_API no encontrado). Detectamos esto una sola vez y saltamos los tests
 # que aplican transforms sobre PIL images en esos entornos.
