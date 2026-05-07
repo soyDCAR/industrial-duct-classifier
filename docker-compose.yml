@@ -1,0 +1,53 @@
+version: "3.9"
+
+# ── Uso ───────────────────────────────────────────────────────────────
+# CPU (por defecto):
+#   docker compose up ductos-cpu
+#
+# GPU (requiere nvidia-container-toolkit instalado):
+#   docker compose up ductos-gpu
+#
+# Predicción batch:
+#   docker compose run --rm ductos-cpu python predict.py img/ --batch --output resultados.csv
+# ─────────────────────────────────────────────────────────────────────
+
+services:
+
+  # ── Servicio CPU ─────────────────────────────────────────────────
+  ductos-cpu:
+    build:
+      context: .
+      args:
+        CUDA: "0"
+    image: ductos:cpu
+    volumes:
+      # El modelo y el mapping se montan desde tu máquina — no van en la imagen
+      - ./modelo_ductos_multitarea_efnet.pth:/app/modelo_ductos_multitarea_efnet.pth:ro
+      - ./class_mapping.json:/app/class_mapping.json:ro
+      # Para procesar imágenes locales
+      - ./img:/app/img:ro
+    ports:
+      - "7860:7860"    # Demo Gradio (Lección 6)
+    command: python predict.py --help
+
+  # ── Servicio GPU ──────────────────────────────────────────────────
+  ductos-gpu:
+    build:
+      context: .
+      args:
+        CUDA: "1"
+    image: ductos:gpu
+    volumes:
+      - ./modelo_ductos_multitarea_efnet.pth:/app/modelo_ductos_multitarea_efnet.pth:ro
+      - ./class_mapping.json:/app/class_mapping.json:ro
+      - ./img:/app/img:ro
+    ports:
+      - "7860:7860"
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    command: python predict.py --help

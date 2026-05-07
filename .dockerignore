@@ -1,0 +1,45 @@
+# ── Modelos (se montan como volumen, no se copian en la imagen) ──
+*.pth
+*.pt
+*.ckpt
+
+# ── Dataset e imágenes ───────────────────────────────────────────
+img/
+data/
+*.jpg
+*.jpeg
+*.png
+*.bmp
+
+# ── Notebooks (no necesarios en producción) ──────────────────────
+*.ipynb
+.ipynb_checkpoints/
+
+# ── Entornos y configuración local ──────────────────────────────
+.venv/
+venv/
+env/
+ductos_env/
+.env
+
+# ── Artefactos de entrenamiento ──────────────────────────────────
+runs/
+logs/
+outputs/
+
+# ── Python ───────────────────────────────────────────────────────
+__pycache__/
+*.pyc
+*.pyo
+
+# ── Git ──────────────────────────────────────────────────────────
+.git/
+.gitignore
+
+# ── IDE ──────────────────────────────────────────────────────────
+.vscode/
+.idea/
+
+# ── Sistema operativo ────────────────────────────────────────────
+.DS_Store
+Thumbs.db

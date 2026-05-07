@@ -1,0 +1,60 @@
+# ── Modelos entrenados (van en Releases o HuggingFace, NO en Git) ──
+*.pth
+*.pt
+*.ckpt
+*.pkl
+models/
+
+# ── Dataset e imágenes (demasiado grandes para Git) ──
+img/
+data/
+*.jpg
+*.jpeg
+*.png
+*.bmp
+*.gif
+
+# ── Python ──
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg-info/
+dist/
+build/
+*.egg
+
+# ── Entornos virtuales ──
+.venv/
+venv/
+env/
+ductos_env/
+
+# ── Jupyter ──
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# ── Artefactos de entrenamiento ──
+runs/
+logs/
+outputs/
+checkpoints/
+
+# ── Variables de entorno y secrets ──
+.env
+.env.local
+*.key
+
+# ── IDEs ──
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+
+# ── Sistema operativo ──
+.DS_Store
+Thumbs.db
+desktop.ini
