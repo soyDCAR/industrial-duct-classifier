@@ -13,7 +13,6 @@ from PIL import Image
 
 from model import DuctoDataset, FocalLoss, MultiEfficientNet, get_transforms
 
-
 # ── Arquitectura ─────────────────────────────────────────────────────
 
 def test_model_instantiation():

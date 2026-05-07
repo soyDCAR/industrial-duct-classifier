@@ -14,8 +14,8 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-# Los notebooks generados tienen imports en orden distinto — los ignoramos
-"*.ipynb" = ["E402", "F401", "I001"]
+# Notebooks: estilo diferente a scripts de producción
+"*.ipynb" = ["E401", "E402", "F401", "I001"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -7,15 +7,14 @@ Uso:
     python evaluate.py --model runs/exp1/modelo.pth --data-dir img/ --output-dir runs/exp1
 """
 import argparse
-import json
 import os
 import sys
 
 import torch
 from torch.utils.data import DataLoader
 
-from model import DuctoDataset, MultiEfficientNet, get_transforms
 from metrics import run_full_evaluation
+from model import DuctoDataset, MultiEfficientNet, get_transforms
 
 
 def parse_args() -> argparse.Namespace:
@@ -66,7 +65,7 @@ def main():
     results = run_full_evaluation(model, loader, dataset, device, args.output_dir)
 
     print(f"\n{'═'*55}")
-    print(f"  Resumen final")
+    print("  Resumen final")
     print(f"{'═'*55}")
     print(f"  dX  accuracy={results['dx']['accuracy']:.2%}  "
           f"F1w={results['dx']['f1_weighted']:.4f}  "
@@ -75,9 +74,9 @@ def main():
           f"F1w={results['ox']['f1_weighted']:.4f}  "
           f"F1macro={results['ox']['f1_macro']:.4f}")
     print(f"\n  Archivos generados en: {args.output_dir}/")
-    print(f"    metrics.json")
-    print(f"    confusion_dx.png")
-    print(f"    confusion_ox.png")
+    print("    metrics.json")
+    print("    confusion_dx.png")
+    print("    confusion_ox.png")
 
 
 if __name__ == "__main__":

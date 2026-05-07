@@ -1,11 +1,13 @@
-import tkinter as tk
-from tkinter import filedialog
-from PIL import Image, ImageTk
-import torch
-from torchvision.models import efficientnet_b0, EfficientNet_B0_Weights
-import torchvision.transforms as transforms
 import json
 import os
+import tkinter as tk
+from tkinter import filedialog
+
+import torch
+import torchvision.transforms as transforms
+from PIL import Image, ImageTk
+from torchvision.models import EfficientNet_B0_Weights, efficientnet_b0
+
 
 # -------------------- Modelo --------------------
 class MultiEfficientNet(torch.nn.Module):
@@ -29,7 +31,7 @@ class MultiEfficientNet(torch.nn.Module):
 device = torch.device("cpu")  # Forzar CPU
 
 # Cargar mapeo desde JSON
-with open("class_mapping.json", "r") as f:
+with open("class_mapping.json") as f:
     mapping = json.load(f)
     idx_to_class_d = {int(k): v for k, v in mapping["d"].items()}
     idx_to_class_o = {int(k): v for k, v in mapping["o"].items()}
@@ -87,7 +89,7 @@ class App:
     def mostrar_y_predecir(self, ruta_img):
         try:
             img = Image.open(ruta_img).convert("RGB")
-        except:
+        except Exception:
             return
 
         # Mostrar miniatura

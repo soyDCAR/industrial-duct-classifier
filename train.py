@@ -17,8 +17,8 @@ import torch
 from torch import optim
 from torch.utils.data import DataLoader, random_split
 
-from model import DuctoDataset, FocalLoss, MultiEfficientNet, get_transforms
 from metrics import run_full_evaluation
+from model import DuctoDataset, FocalLoss, MultiEfficientNet, get_transforms
 
 
 def set_seed(seed: int) -> None:
