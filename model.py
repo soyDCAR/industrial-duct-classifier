@@ -2,7 +2,7 @@ import os
 import re
 
 import torch
-import torchvision.transforms as transforms
+import torchvision.transforms.v2 as transforms
 from PIL import Image
 from torch import nn
 from torch.utils.data import Dataset
@@ -13,6 +13,8 @@ IMAGENET_STD = [0.229, 0.224, 0.225]
 
 
 def get_transforms(train: bool) -> transforms.Compose:
+    # ToImage + ToDtype reemplazan el deprecated ToTensor() sin depender de la C API de numpy
+    to_tensor = [transforms.ToImage(), transforms.ToDtype(torch.float32, scale=True)]
     if train:
         return transforms.Compose(
             [
@@ -21,14 +23,14 @@ def get_transforms(train: bool) -> transforms.Compose:
                 transforms.RandomRotation(10),
                 transforms.ColorJitter(brightness=0.3, contrast=0.3),
                 transforms.RandomAffine(degrees=15, translate=(0.05, 0.05)),
-                transforms.ToTensor(),
+                *to_tensor,
                 transforms.Normalize(IMAGENET_MEAN, IMAGENET_STD),
             ]
         )
     return transforms.Compose(
         [
             transforms.Resize((224, 224)),
-            transforms.ToTensor(),
+            *to_tensor,
             transforms.Normalize(IMAGENET_MEAN, IMAGENET_STD),
         ]
     )
