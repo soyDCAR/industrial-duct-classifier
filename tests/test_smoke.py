@@ -25,6 +25,7 @@ def _numpy_bridge_ok() -> bool:
     except RuntimeError:
         return False
 
+
 NUMPY_BRIDGE = _numpy_bridge_ok()
 requires_numpy = pytest.mark.skipif(
     not NUMPY_BRIDGE,
