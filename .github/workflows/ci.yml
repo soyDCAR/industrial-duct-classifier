@@ -45,23 +45,22 @@ jobs:
         with:
           python-version: "3.10"
 
-      # Caché de pip: si requirements.txt no cambia, reutiliza paquetes instalados
+      # Caché de pip — la key incluye "v2" para forzar cache limpio
       - name: Cachear dependencias pip
         uses: actions/cache@v4
         with:
           path: ~/.cache/pip
-          key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt', 'requirements-dev.txt') }}
+          key: ${{ runner.os }}-pip-v2-${{ hashFiles('requirements.txt', 'requirements-dev.txt') }}
           restore-keys: |
-            ${{ runner.os }}-pip-
+            ${{ runner.os }}-pip-v2-
 
-      - name: Instalar PyTorch CPU
-        run: |
-          pip install torch==2.1.2 torchvision==0.16.2 \
-            --index-url https://download.pytorch.org/whl/cpu
-
-      - name: Instalar dependencias del proyecto
+      # numpy debe instalarse ANTES que torch: torch verifica numpy al importarse
+      # por primera vez, y si no lo encuentra lo marca como no disponible
+      - name: Instalar todas las dependencias
         run: |
           pip install "numpy>=1.24.0,<2.0.0"
+          pip install torch==2.1.2 torchvision==0.16.2 \
+            --index-url https://download.pytorch.org/whl/cpu
           pip install Pillow scikit-learn pandas scipy matplotlib tqdm \
                       transformers gradio opencv-python-headless
           pip install -r requirements-dev.txt
