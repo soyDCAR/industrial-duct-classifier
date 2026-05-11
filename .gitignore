@@ -13,6 +13,7 @@ data/
 *.png
 *.bmp
 *.gif
+!assets/demo.gif
 
 # ── Python ──
 __pycache__/

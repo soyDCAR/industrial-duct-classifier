@@ -11,6 +11,10 @@ occupied ducts (**oX**) in a single forward pass through a shared EfficientNet-B
 
 ---
 
+![Demo](assets/demo.gif)
+
+---
+
 ## Quick start
 
 ```bash
