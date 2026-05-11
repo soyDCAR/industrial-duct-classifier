@@ -1,140 +1,146 @@
-# Clasificador de Ductos — EfficientNet-B0 Multitarea
+# Industrial Duct Classifier — EfficientNet-B0 Multitask
 
 [![CI](https://github.com/soyDCAR/industrial-duct-classifier/actions/workflows/ci.yml/badge.svg)](https://github.com/soyDCAR/industrial-duct-classifier/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-Clasificación automática de imágenes de ductos industriales mediante una red neuronal
-multitarea. El modelo predice simultáneamente el número de ductos totales (**dX**) y
-ocupados (**oX**) a partir de una sola pasada por la red.
+Automatic classification of industrial duct images using a multitask neural network.
+The model simultaneously predicts the total number of ducts (**dX**) and the number of
+occupied ducts (**oX**) in a single forward pass through a shared EfficientNet-B0 backbone.
 
 **Stack:** Python 3.10 · PyTorch 2.x · EfficientNet-B0 · Gradio · scikit-learn · Docker
 
 ---
 
-## Demo
-
-![Demo Gradio](assets/demo.gif)
-
-> Sube una imagen → el modelo predice ductos totales, ocupados y vacíos en tiempo real.
+## Quick start
 
 ```bash
+# 1. Install dependencies
+python -m venv .venv
+source .venv/bin/activate      # Windows: .venv\Scripts\activate
+pip install -r requirements.txt
+
+# 2. Download the pretrained model from Releases and place it in the project root:
+#    https://github.com/soyDCAR/industrial-duct-classifier/releases/latest
+
+# 3. Launch the web demo
 python app.py
-# Abre http://localhost:7860
+# Open http://localhost:7860
 ```
 
 ---
 
-## Resultados
+## Results
 
-| Tarea | Accuracy | F1 weighted | F1 macro |
+| Task | Accuracy | F1 weighted | F1 macro |
 |---|---|---|---|
-| dX — ductos totales | 55.4 % | 0.56 | 0.48 |
-| oX — ductos ocupados | 52.4 % | 0.51 | 0.35 |
+| dX — total ducts | 55.4 % | 0.56 | 0.48 |
+| oX — occupied ducts | 52.4 % | 0.51 | 0.35 |
 
-> Entrenado sobre ~840 imágenes, 10 épocas, EfficientNet-B0 preentrenado en ImageNet.
-> Las clases d7+ y o6/o7+ tienen muy pocas muestras; ver matrices de confusión en `runs/`.
+> Trained on ~840 images, 10 epochs, EfficientNet-B0 pretrained on ImageNet.
+> Classes d7+ and o6/o7+ have very few samples; see confusion matrices in `runs/`.
 
 ---
 
-## Pipeline de datos
+## Data pipeline
 
-El pipeline completo va desde imágenes crudas con nombres codificados hasta un modelo
-desplegado. Cada etapa tiene su script o notebook independiente.
+The full pipeline goes from raw images with encoded filenames to a deployed model.
+Each stage has its own independent script or notebook.
 
 ```mermaid
 flowchart TD
-    A[📂 Imágenes crudas\nimg###_dX_oY_vZ.ext] --> B
+    A[📂 Raw images\nimg###_dX_oY_vZ.ext] --> B
 
-    subgraph LIMPIEZA["1 · Limpieza y validación"]
-        B[Normalizar nombres\n imagen→img] --> C
-        C[Unificar extensiones\n .PNG → .png] --> D
-        D[Detectar duplicados\ny secuencias faltantes]
+    subgraph CLEAN["1 · Cleaning & validation"]
+        B[Normalize filenames\n imagen→img] --> C
+        C[Unify extensions\n .PNG → .png] --> D
+        D[Detect duplicates\nand missing sequences]
     end
 
     D --> E
 
-    subgraph ANALISIS["2 · Análisis exploratorio"]
-        E[Distribución de clases dX\nconteo_por_clases.ipynb] --> F
-        F{¿Desbalance\nsevero?}
-        F -->|Sí| G[Aplicar FocalLoss\ngamma=2.0]
+    subgraph EDA["2 · Exploratory analysis"]
+        E[Class distribution dX\nconteo_por_clases.ipynb] --> F
+        F{Severe\nimbalance?}
+        F -->|Yes| G[Use FocalLoss\ngamma=2.0]
         F -->|No| H[CrossEntropyLoss]
     end
 
     G & H --> I
 
-    subgraph DATASET["3 · Construcción del dataset"]
-        I[Extracción de etiquetas\nvía regex en nombre de archivo] --> J
-        J[Agrupación de clases\nvalores > 6  →  clase '7+'] --> K
-        K[Split 80/20\ntrain / val · seed=42]
+    subgraph DATASET["3 · Dataset construction"]
+        I[Label extraction\nvia regex on filename] --> J
+        J[Class grouping\nvalues > 6  →  class '7+'] --> K
+        K[80/20 split\ntrain / val · seed=42]
     end
 
     K --> L
 
-    subgraph ENTRENAMIENTO["4 · Entrenamiento"]
-        L[Augmentación\nCrop · Flip · Rotation · ColorJitter] --> M
+    subgraph TRAIN["4 · Training"]
+        L[Augmentation\nCrop · Flip · Rotation · ColorJitter] --> M
         M[EfficientNet-B0\nImageNet weights] --> N
-        N[Dos cabezas lineales\nclassifier_d · classifier_o] --> O
-        O[Adam lr=1e-3\n10 épocas]
+        N[Two linear heads\nclassifier_d · classifier_o] --> O
+        O[Adam lr=1e-3\n10 epochs]
     end
 
     O --> P
 
-    subgraph ARTEFACTOS["5 · Artefactos guardados"]
-        P[modelo.pth\nGitHub Releases] 
+    subgraph ARTIFACTS["5 · Saved artifacts"]
+        P[model.pth\nGitHub Releases]
         P --> Q[class_mapping.json]
-        P --> R[metrics.json\naccuracy · F1 · por clase]
+        P --> R[metrics.json\naccuracy · F1 · per class]
         P --> S[confusion_dx.png\nconfusion_ox.png]
         P --> T[loss_curve.png]
     end
 
     S & R --> U
 
-    subgraph INFERENCIA["6 · Inferencia"]
-        U[evaluate.py\naudit de cualquier checkpoint] 
-        P --> V[predict.py\nimagen o carpeta → CSV]
+    subgraph INFERENCE["6 · Inference"]
+        U[evaluate.py\naudit any checkpoint]
+        P --> V[predict.py\nimage or folder → CSV]
         P --> W[app.py\nGradio web demo]
     end
 ```
 
-### Decisiones de ingeniería
+### Engineering decisions
 
-| Decisión | Alternativa descartada | Razón |
+| Decision | Discarded alternative | Reason |
 |---|---|---|
-| Etiquetas en el nombre del archivo | CSV de etiquetas separado | Sin riesgo de desincronización imagen-label |
-| Clases agrupadas en "7+" | Mantener clases raras | Clases con < 5 muestras no son aprendibles |
-| FocalLoss γ=2.0 | CrossEntropyLoss estándar | Penaliza más los ejemplos difíciles de clases minoritarias |
-| Dos cabezas independientes | Dos modelos separados | Un solo forward pass, features compartidas |
-| `class_mapping.json` generado al entrenar | Hardcoded en código | El mapeo cambia si el dataset cambia |
+| Labels encoded in filename | Separate CSV file | No risk of image-label desync |
+| Classes grouped into "7+" | Keep rare classes | Classes with < 5 samples are not learnable |
+| FocalLoss γ=2.0 | Standard CrossEntropyLoss | Penalizes harder examples from minority classes more |
+| Two independent heads | Two separate models | Single forward pass, shared features |
+| `class_mapping.json` generated at training | Hardcoded in source | Mapping changes if dataset changes |
 
 ---
 
-## Estructura del proyecto
+## Project structure
 
 ```
 industrial-duct-classifier/
-├── model.py            # Arquitectura: MultiEfficientNet, DuctoDataset, FocalLoss
-├── train.py            # Entrenamiento con argparse
-├── evaluate.py         # Evaluación de cualquier checkpoint guardado
-├── predict.py          # Inferencia: imagen individual o carpeta → CSV
-├── app.py              # Demo Gradio (web interactiva)
+├── model.py            # Architecture: MultiEfficientNet, DuctoDataset, FocalLoss
+├── train.py            # Training CLI with argparse
+├── evaluate.py         # Evaluate any saved checkpoint
+├── predict.py          # Inference: single image or folder → CSV
+├── app.py              # Gradio web demo
+├── metrics.py          # Reusable evaluation functions
 │
-├── requirements.txt    # Dependencias pip
-├── environment.yml     # Entorno conda reproducible
-├── Dockerfile          # CPU por defecto; --build-arg CUDA=1 para GPU
-├── docker-compose.yml
+├── requirements.txt    # Production dependencies
+├── requirements-dev.txt # Dev tools (pytest, ruff — pinned versions)
+├── Dockerfile          # CPU by default; --build-arg CUDA=1 for GPU
 │
 ├── assets/
-│   └── demo.gif        # Captura de la demo Gradio
+│   └── demo.gif        # Gradio demo screencast (coming soon)
 │
-├── runs/               # Artefactos de entrenamiento (ignorado por Git)
+├── runs/               # Training artifacts (git-ignored)
 │   └── exp1/
-│       ├── modelo_ductos_multitarea_efnet.pth  → subir a Releases
+│       ├── modelo_ductos_multitarea_efnet.pth  → upload to Releases
 │       ├── class_mapping.json
 │       ├── metrics.json
 │       ├── loss_curve.png
 │       ├── confusion_dx.png
 │       └── confusion_ox.png
 │
-└── notebooks/          # Exploración (no son parte del pipeline de producción)
+└── notebooks/          # Exploration (not part of the production pipeline)
     ├── Entrenamiento_modelo.ipynb
     ├── Predecir_imagen.ipynb
     └── conteo_por_clases.ipynb
@@ -142,59 +148,59 @@ industrial-duct-classifier/
 
 ---
 
-## Instalación
+## Installation
 
-**Opción A — conda (recomendado):**
-```bash
-conda env create -f environment.yml
-conda activate ductos_env
-```
-
-**Opción B — pip:**
+**Option A — pip:**
 ```bash
 python -m venv .venv
 source .venv/bin/activate      # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 ```
 
-**Descargar el modelo preentrenado:**
+**Option B — conda:**
 ```bash
-# Descarga modelo_ductos_multitarea_efnet.pth y class_mapping.json desde:
+conda env create -f environment.yml
+conda activate ductos_env
+```
+
+**Download the pretrained model:**
+```bash
+# Download modelo_ductos_multitarea_efnet.pth and class_mapping.json from:
 # https://github.com/soyDCAR/industrial-duct-classifier/releases/latest
-# Colócalos en la raíz del proyecto.
+# Place both files in the project root.
 ```
 
 ---
 
-## Uso
+## Usage
 
-### Entrenar desde cero
+### Train from scratch
 ```bash
-# Coloca tus imágenes en img/ con el formato img###_dX_oY_vZ.ext
+# Place your images in img/ using the format: img###_dX_oY_vZ.ext
 python train.py --data-dir img/ --epochs 10 --output-dir runs/exp1
 ```
-Genera en `runs/exp1/`: modelo `.pth`, `class_mapping.json`, `metrics.json`,
-matrices de confusión y curva de pérdida.
+Outputs to `runs/exp1/`: model `.pth`, `class_mapping.json`, `metrics.json`,
+confusion matrices, and loss curve.
 
-### Evaluar un checkpoint
+### Evaluate a checkpoint
 ```bash
 python evaluate.py --model runs/exp1/modelo_ductos_multitarea_efnet.pth \
                    --data-dir img/
 ```
 
-### Predecir
+### Predict
 ```bash
-# Imagen individual
+# Single image
 python predict.py imagen.jpg
 
-# Carpeta completa → CSV
-python predict.py img/ --batch --output resultados.csv
+# Full folder → CSV
+python predict.py img/ --batch --output results.csv
 ```
 
-### Demo web
+### Web demo
 ```bash
 python app.py
-# Con link público temporal:
+# With a temporary public link:
 python app.py --share
 ```
 
@@ -207,44 +213,44 @@ docker run --rm -p 7860:7860 \
   -v ./class_mapping.json:/app/class_mapping.json \
   ductos python app.py
 
-# GPU (requiere nvidia-container-toolkit)
+# GPU (requires nvidia-container-toolkit)
 docker build --build-arg CUDA=1 -t ductos-gpu .
 ```
 
 ---
 
-## Formato del dataset
+## Dataset format
 
-Los nombres de archivo codifican las etiquetas — no se necesita CSV externo:
+Filenames encode labels — no external CSV needed:
 
 ```
 img490_d2_o0_v2.png
-│      │  │  └─ v2  → 2 ductos vacíos
-│      │  └──── o0  → 0 ductos ocupados
-│      └──────  d2  → 2 ductos totales
-└─────────────  img490 → ID único
+│      │  │  └─ v2  → 2 empty ducts
+│      │  └──── o0  → 0 occupied ducts
+│      └──────  d2  → 2 total ducts
+└─────────────  img490 → unique ID
 ```
 
-Valores mayores a 6 se agrupan en la clase **"7+"** para ambas tareas.
-El dataset debe tener al menos ~30 imágenes por clase para resultados fiables.
+Values greater than 6 are grouped into class **"7+"** for both tasks.
+The dataset should have at least ~30 images per class for reliable results.
 
-**Distribución del dataset de referencia (~840 imágenes):**
+**Reference dataset distribution (~840 images):**
 
-| Clase | d0 | d1 | d2 | d3 | d4 | d5 | d6 | d7+ |
+| Class | d0 | d1 | d2 | d3 | d4 | d5 | d6 | d7+ |
 |---|---|---|---|---|---|---|---|---|
-| Muestras | 41 | 225 | 180 | 105 | 125 | 53 | 92 | ~10 |
+| Samples | 41 | 225 | 180 | 105 | 125 | 53 | 92 | ~10 |
 
-> El fuerte desbalance hacia d1 y d2 justifica el uso de FocalLoss.
+> The strong imbalance toward d1 and d2 justifies using FocalLoss.
 
 ---
 
-## Arquitectura del modelo
+## Model architecture
 
 ```
-Imagen (224×224×3)
+Image (224×224×3)
        │
        ▼
-EfficientNet-B0 features   ← pesos ImageNet congelados inicialmente
+EfficientNet-B0 features   ← ImageNet pretrained weights
        │
 AdaptiveAvgPool2d(1,1)
        │
@@ -255,12 +261,12 @@ AdaptiveAvgPool2d(1,1)
 Linear    Linear
 (1280→Nd) (1280→No)
    │       │
-  dX      oX          ← predicciones independientes
-                         vX = max(dX - oX, 0)  calculado en inferencia
+  dX      oX          ← independent predictions
+                         vX = max(dX - oX, 0)  computed at inference
 ```
 
 ---
 
-## Licencia
+## License
 
-MIT
+MIT — see [LICENSE](LICENSE)

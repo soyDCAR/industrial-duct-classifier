@@ -41,6 +41,9 @@ logs/
 outputs/
 checkpoints/
 
+# ── Claude Code (settings locales con rutas de máquina) ──
+.claude/
+
 # ── Variables de entorno y secrets ──
 .env
 .env.local
