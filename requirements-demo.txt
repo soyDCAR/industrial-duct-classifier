@@ -1,0 +1,5 @@
+# ── Gradio demo extras (demo/app.py) ──────────────────────────────────
+# Install on top of requirements-api.txt:
+#   pip install -r requirements-api.txt -r requirements-demo.txt
+gradio>=4.0.0
+matplotlib>=3.7.0

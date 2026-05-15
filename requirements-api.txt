@@ -1,0 +1,21 @@
+# ── Production inference service — minimal dependency set ─────────────
+#
+# Intentionally excludes (install separately for training/demo):
+#   transformers  (~500 MB) — not used by the API
+#   gradio        (~300 MB) — demo only, see requirements-demo.txt
+#   scikit-learn  (~100 MB) — training only
+#   scipy         (~100 MB) — training only
+#   pandas        ( ~80 MB) — training only
+#   matplotlib    ( ~50 MB) — training only
+#   torchaudio    (~100 MB) — not used at all
+#   opencv        (~100 MB) — not used by the API
+#
+# This keeps the API image at ~800 MB instead of ~4 GB.
+
+numpy>=1.24.0,<2.0.0
+Pillow>=9.5.0
+fastapi>=0.100.0
+uvicorn[standard]>=0.23.0
+python-multipart>=0.0.6
+prometheus-client>=0.17.0
+structlog>=23.0.0

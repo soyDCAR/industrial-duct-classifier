@@ -1,9 +1,9 @@
-# ── Modelos (se montan como volumen, no se copian en la imagen) ──
+# ── Model weights (mounted as volumes at runtime) ──────────────────────
 *.pth
 *.pt
 *.ckpt
 
-# ── Dataset e imágenes ───────────────────────────────────────────
+# ── Training data and images ───────────────────────────────────────────
 img/
 data/
 *.jpg
@@ -11,35 +11,46 @@ data/
 *.png
 *.bmp
 
-# ── Notebooks (no necesarios en producción) ──────────────────────
+# ── Notebooks and training artifacts ──────────────────────────────────
+training/
 *.ipynb
 .ipynb_checkpoints/
+runs/
+logs/
+outputs/
 
-# ── Entornos y configuración local ──────────────────────────────
+# ── Dev and test code (not needed in any image) ────────────────────────
+tests/
+locustfile.py
+spaces/
+
+# ── Local environments ─────────────────────────────────────────────────
 .venv/
 venv/
 env/
 ductos_env/
 .env
 
-# ── Artefactos de entrenamiento ──────────────────────────────────
-runs/
-logs/
-outputs/
-
-# ── Python ───────────────────────────────────────────────────────
+# ── Python bytecode ────────────────────────────────────────────────────
 __pycache__/
 *.pyc
 *.pyo
 
-# ── Git ──────────────────────────────────────────────────────────
+# ── Config files not needed inside the container ───────────────────────
+environment.yml
+pyproject.toml
+requirements-dev.txt
+docker-compose.yml
+*.md
+
+# ── Git and IDE ────────────────────────────────────────────────────────
 .git/
 .gitignore
-
-# ── IDE ──────────────────────────────────────────────────────────
+.gitattributes
 .vscode/
 .idea/
+.github/
 
-# ── Sistema operativo ────────────────────────────────────────────
+# ── OS artifacts ───────────────────────────────────────────────────────
 .DS_Store
 Thumbs.db

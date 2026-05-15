@@ -140,15 +140,15 @@ def test_dataset_with_synthetic_image(tmp_path):
 # ── CLIs (argparse) ──────────────────────────────────────────────────
 
 
-@pytest.mark.parametrize("script", ["train.py", "predict.py", "evaluate.py", "app.py"])
+@pytest.mark.parametrize("script", ["train.py", "predict.py", "evaluate.py", "demo/app.py"])
 def test_cli_help(script):
-    """Todos los scripts responden a --help sin error."""
+    """All scripts respond to --help without error."""
     result = subprocess.run(
         [sys.executable, script, "--help"],
         capture_output=True,
         text=True,
     )
     assert result.returncode == 0, (
-        f"{script} --help retornó código {result.returncode}\nstderr: {result.stderr}"
+        f"{script} --help returned code {result.returncode}\nstderr: {result.stderr}"
     )
-    assert "usage" in result.stdout.lower(), f"{script} --help no muestra 'usage'"
+    assert "usage" in result.stdout.lower(), f"{script} --help does not show 'usage'"

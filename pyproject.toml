@@ -14,8 +14,10 @@ ignore = [
 ]
 
 [tool.ruff.lint.per-file-ignores]
-# Notebooks: estilo diferente a scripts de producción
+# Notebooks: different style from production scripts
 "*.ipynb" = ["E401", "E402", "F401", "I001"]
+# demo/app.py manipulates sys.path before imports (needed for standalone execution)
+"demo/app.py" = ["E402"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

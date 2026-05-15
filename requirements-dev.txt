@@ -1,3 +1,5 @@
-# Herramientas de desarrollo — NO necesarias para usar el modelo
+# Dev tools — not needed to run the model or API
 pytest>=7.4.0
 ruff==0.15.12
+httpx>=0.24.0
+locust>=2.20.0

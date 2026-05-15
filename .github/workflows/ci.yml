@@ -24,19 +24,20 @@ jobs:
       - name: Instalar ruff
         run: pip install -r requirements-dev.txt
 
-      - name: Verificar estilo de código
+      - name: Check code style
         run: ruff check .
 
-      - name: Verificar formato
+      - name: Check formatting
         run: ruff format --check .
 
-  # ── Job 2: Smoke tests ──────────────────────────────────────────────
-  # Instala torch CPU (sin CUDA) para mantener el CI rápido (~2 min).
-  # Verifica que el código corre, no que el modelo esté bien entrenado.
+  # ── Job 2: Unit + integration tests ───────────────────────────────
+  # Installs torch CPU (no CUDA) to keep CI fast (~2 min).
+  # Covers model architecture, API endpoints, and predictor unit tests.
+  # Locust load tests run manually: locust -f locustfile.py --host http://localhost:8000
   smoke-test:
-    name: Smoke tests (pytest)
+    name: Unit + integration tests (pytest)
     runs-on: ubuntu-latest
-    needs: lint          # Solo corre si el lint pasó
+    needs: lint
 
     steps:
       - uses: actions/checkout@v4
@@ -45,8 +46,8 @@ jobs:
         with:
           python-version: "3.10"
 
-      # Caché de pip — incluye el YAML para que cualquier cambio de versión de torch lo invalide
-      - name: Cachear dependencias pip
+      # pip cache keyed on all dependency files — torch version change invalidates it
+      - name: Cache pip dependencies
         uses: actions/cache@v4
         with:
           path: ~/.cache/pip
@@ -54,16 +55,17 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pip-v3-
 
-      # numpy debe instalarse ANTES que torch: torch verifica numpy al importarse
-      # por primera vez, y si no lo encuentra lo marca como no disponible
-      - name: Instalar todas las dependencias
+      # numpy must be installed before torch: torch checks for numpy on first import
+      - name: Install all dependencies
         run: |
           pip install "numpy>=1.24.0,<2.0.0"
           pip install torch==2.3.1 torchvision==0.18.1 \
             --index-url https://download.pytorch.org/whl/cpu
           pip install Pillow scikit-learn pandas scipy matplotlib tqdm \
-                      transformers gradio opencv-python-headless
+                      transformers gradio opencv-python-headless \
+                      fastapi "uvicorn[standard]" python-multipart \
+                      prometheus-client structlog httpx locust
           pip install -r requirements-dev.txt
 
-      - name: Correr smoke tests
+      - name: Run smoke and API tests
         run: pytest tests/ -v --tb=short
