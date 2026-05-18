@@ -1,5 +1,5 @@
 # Industrial Duct Classifier — ML Inference Service
-
+   [![HF Space](https://img.shields.io/badge/🤗-Live%20Demo-yellow)](https://huggingface.co/spaces/soyDCAR/industrial-duct-classifier)
 [![CI](https://github.com/soyDCAR/industrial-duct-classifier/actions/workflows/ci.yml/badge.svg)](https://github.com/soyDCAR/industrial-duct-classifier/actions/workflows/ci.yml)
 [![HF Spaces](https://img.shields.io/badge/%F0%9F%A4%97%20HF-Spaces-yellow)](https://huggingface.co/spaces/soyDCAR/industrial-duct-classifier)
 [![Python 3.10](https://img.shields.io/badge/python-3.10-blue.svg)](https://www.python.org/downloads/release/python-3100/)
