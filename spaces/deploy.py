@@ -6,7 +6,6 @@ Usage:
 """
 
 import argparse
-import shutil
 from pathlib import Path
 
 from huggingface_hub import HfApi, create_repo
